@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2D Bowling Game</title>
+
+    <!-- Import map shim for browsers without native support -->
+
+   <script async src="https://unpkg.com/es-module-shims@1.8.0/dist/es-module-shims.js"></script>
+
+   <!-- Define all external dependencies in the import map -->
+
+   <script type="importmap">
+    {
+
+        "imports": {
+
+            "matter": "https://cdn.jsdelivr.net/npm/matter-js@0.20.0/build/matter.min.js",
+            "p5": "https://cdn.jsdelivr.net/npm/p5@1.4.0/lib/p5.min.js"
+
+        }
+
+    }
+   </script>
+    <style>
+        body {
+            margin: 0;
+            background-color: #f0f0f0;
+            font-family: Arial, sans-serif;
+        }
+        #canvas {
+            margin-top: 100px;
+            margin-left: 100px;
+        }
+    </style>
+</head>
+<body>
+    <main id="canvas" width="1200" height="600"></main>
+    <script type="module">
+
+        // Import Dependencies
+        import * as matter from 'matter';
+        import * as p5 from 'p5';
+
+        // Matter Aliases
+        let engine = matter.Engine.create(),
+            render = matter.Render.create({element: document.body, engine: engine}),
+            runner = matter.Runner.create(),
+            bodies = matter.Bodies,
+            composite = matter.Composite;
+
+        // Bowling Variables
+        let laneBody, pinBodies = [], ballBody;
+        let laneTexture = 'slippery';
+        let pinMaterial = 'hard';
+        let ballAngle = 0;
+        let ballPosition = 300;
+        let ballSpeed = 10;
+
+        function setup() {
+            const canvas = createCanvas(1200, 600);
+            canvas.parent('canvas')
+            engine = Engine.create();
+            world = engine.world;
+            laneBody = Bodies.rectangle(400, 300, 800, 50, { isStatic: true });
+            World.add(world, laneBody);
+            for (let i = 0; i < 10; i++) {
+                pinBodies.push(Bodies.circle(700 + i * 50, 250, 20, { restitution: 0.5 }));
+                World.add(world, pinBodies[i]);
+            }
+            ballBody = Bodies.circle(300, 250, 20, { restitution: 0.5 });
+            World.add(world, ballBody);
+        }
+
+        function draw() {
+            background(240);
+            Engine.update(engine);
+            drawLane();
+            drawPins();
+            drawBall();
+            handleInput();
+        }
+
+        function drawLane() {
+            fill(laneTexture === 'slippery' ? 0 : 128);
+            noStroke();
+            rect(laneBody.position.x, laneBody.position.y, 800, 50);
+        }
+
+        function drawPins() {
+            fill(pinMaterial === 'hard' ? 255 : 128);
+            noStroke();
+            for (let i = 0; i < pinBodies.length; i++) {
+                ellipse(pinBodies[i].position.x, pinBodies[i].position.y, 40, 40);
+            }
+        }
+
+        function drawBall() {
+            fill(255, 0, 0);
+            noStroke();
+            ellipse(ballBody.position.x, ballBody.position.y, 40, 40);
+        }
+
+        function handleInput() {
+            if (keyIsDown(LEFT_ARROW)) {
+                ballAngle -= 0.1;
+            }
+            if (keyIsDown(RIGHT_ARROW)) {
+                ballAngle += 0.1;
+            }
+            if (keyIsDown(UP_ARROW)) {
+                ballSpeed += 0.1;
+            }
+            if (keyIsDown(DOWN_ARROW)) {
+                ballSpeed -= 0.1;
+            }
+            if (key === ' ') {
+                ballBody.velocity.x = Math.cos(ballAngle) * ballSpeed;
+                ballBody.velocity.y = Math.sin(ballAngle) * ballSpeed;
+            }
+            if (key === 's') {
+                laneTexture = 'slippery';
+            }
+            if (key === 'r') {
+                laneTexture = 'resistant';
+            }
+            if (key === 'h') {
+                pinMaterial = 'hard';
+            }
+            if (key === 's') {
+                pinMaterial = 'soft';
+            }
+        }
+    </script>
+</body>
+</html>
